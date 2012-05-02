@@ -4,6 +4,8 @@ import os
 import sys
 import optparse
 import getpass
+import configparser
+
 
 
 parser = optparse.OptionParser()
@@ -19,6 +21,11 @@ if not opts.env:
     parser.print_help()
     exit(-1)
 
+config = configparser.ConfigParser()
+
+
+
 if __name__ == '__main__':
 
-    print('in main')
+    print("environment = " + opts.env)
+    print config['ec2_username']

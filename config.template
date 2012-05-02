@@ -1,0 +1,15 @@
+[EC2]
+ec2_username = 
+ec2_password =
+ec2_account =
+ec2_x509_pub =
+ec2_x509_pri =
+ec2_east_key =
+ec2_west_key =
+
+[LOCAL]
+username = root
+password = 
+rhua_hostname = 
+cds1_hostname = 
+cds2_hostname = 
