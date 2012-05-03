@@ -30,7 +30,6 @@ cfg = INIConfig(open('config'))
 
 if __name__ == '__main__':
 
-    print("environment = " + opts.env)
     print cfg.EC2.ec2_username
 
     ## start an instance
@@ -45,7 +44,7 @@ if __name__ == '__main__':
         instanceDetails = thisInstance.__dict__
         this_hostname = instanceDetails['public_dns_name']
         print(this_hostname)
-        dict[this_hostname.encode('ascii')] = thisInstance
+        dict[i] = thisInstance
 
     ## wait for instance and check ssh
     print dict.keys()
@@ -53,8 +52,9 @@ if __name__ == '__main__':
     time.sleep(130)
     print('done waiting for instances to boot')
     for i in dict.keys():
-        print i
-        env.host_string = i
+        instance = dict[i].__dict__
+        hostname = instance['public_dns_name'].encode('ascii')
+        env.host_string = hostname
         env.user = 'root'
         env.key_filename = cfg.EC2.east_key
         run('hostname')
