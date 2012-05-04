@@ -7,7 +7,9 @@ import getpass
 import time
 from iniparse import INIConfig
 sys.path.append('ec2')
+sys.path.append('shell')
 from ec2lib import ec2h
+from commandRunner import execute
 from fabric.api import env, run, put, settings
 
 
@@ -18,48 +20,94 @@ parser.add_option('-e', '--install_env', help='pick environment: ec2,local',
 
 
 (opts, args) = parser.parse_args()
-
-# Making sure all mandatory options appeared.
-if not opts.install_env:
-    print "requires an environment"
-    parser.print_help()
-    exit(-1)
-
 cfg = INIConfig(open('config'))
+myenv = INIConfig(open('environment'))
+
+
+def checkEnvState(thisDict):
+    for i in thisDict.keys():
+            instance = thisDict[i].__dict__
+            hostname = instance['public_dns_name'].encode('ascii')
+            #quick check to make sure everything is up and running
+            x = execute(i, hostname, 'root', cfg.EC2.east_key,
+                 cfg.EC2.east_keyName)
+            if not x.connectionSuccessful:
+                exit(-1)
+            print(x.rc('hostname'))
+
+
+def startInstances(rhuiEnv):
+    ## start an instance
+    e = ec2h(cfg.EC2.region, cfg.EC2.username, cfg.EC2.password)
+    myConn = e.getConnection()
+    dict = {}
+
+    for i in rhuiEnv:
+        thisInstance = e.startInstance(cfg.EC2.ami_id, cfg.EC2.east_keyName,
+            myConn, cfg.EC2.hwp)
+        instanceDetails = thisInstance.__dict__
+        this_hostname = instanceDetails['public_dns_name']
+        print(this_hostname)
+        dict[i] = thisInstance
+    return dict
 
 
 if __name__ == '__main__':
-    print(opts.install_env)
-    if opts.install_env == 'ec2':
-        ## start an instance
-        e = ec2h(cfg.EC2.region, cfg.EC2.username, cfg.EC2.password)
-        myConn = e.getConnection()
-        dict = {}
-        #rhui = ['rhua', 'cds1', 'cds2', 'proxy', 'client']
-        rhui = ['rhua', 'cds1']
-        for i in rhui:
-            thisInstance = e.startInstance(cfg.EC2.ami_id, cfg.EC2.east_keyName,
-                myConn, 'm1.large')
-            instanceDetails = thisInstance.__dict__
-            this_hostname = instanceDetails['public_dns_name']
-            print(this_hostname)
-            dict[i] = thisInstance
-
+    if cfg.MAIN.environment == 'ec2':
+        rhui = list(myenv)
+        dict = startInstances(rhui)
         ## wait for instance and check ssh
-        print dict.keys()
         print('wait for instances to boot for 130 seconds')
         time.sleep(130)
         print('done waiting for instances to boot')
-        for i in dict.keys():
-            instance = dict[i].__dict__
-            hostname = instance['public_dns_name'].encode('ascii')
-            env.host_string = hostname
-            env.user = 'root'
-            env.key_filename = cfg.EC2.east_key
-            run('hostname')
+        checkEnvState(dict)
 
-    elif opts.install_env == 'local':
+        if 'RHUA' in rhui:
+            rhua = dict['RHUA'].__dict__
+            rhuaCMD = execute('RHUA', rhua['public_dns_name'].encode('ascii'),
+                'root', cfg.EC2.east_key, cfg.EC2.east_keyName)
+
+        if 'CDS1' in rhui:
+            cds1 = dict['CDS1'].__dict__
+            cds1CMD = execute('CDS1', cds1['public_dns_name'].encode('ascii'),
+                'root', cfg.EC2.east_key, cfg.EC2.east_keyName)
+
+        if 'CDS2' in rhui:
+            cds2 = dict['CDS2'].__dict__
+            cds2CMD = execute('CDS2', cds2['public_dns_name'].encode('ascii'),
+                'root', cfg.EC2.east_key, cfg.EC2.east_keyName)
+
+        if 'CLIENT1' in rhui:
+            client1 = dict['CLIENT1'].__dict__
+            client1CMD = execute('CLIENT1',
+                client1['public_dns_name'].encode('ascii'), 'root',
+                cfg.EC2.east_key, cfg.EC2.east_keyName)
+
+        if 'CLIENT2' in rhui:
+            client2 = dict['CLIENT2'].__dict__
+            client2CMD = execute('CLIENT2',
+                client2['public_dns_name'].encode('ascii'),
+                'root', cfg.EC2.east_key, cfg.EC2.east_keyName)
+
+        if 'PROXY' in rhui:
+            proxy = dict['PROXY'].__dict__
+            proxyCMD = execute('PROXY',
+            proxy['public_dns_name'].encode('ascii'),
+            'root', cfg.EC2.east_key, cfg.EC2.east_keyName)
+
+        rhuaCMD.rc('hostname')
+        cds1CMD.rc('cat /etc/redhat-release')
+
+    elif cfg.MAIN.environment == 'local':
         print('in local')
 
 
 
+
+
+
+
+            #env.host_string = hostname
+            #env.user = 'root'
+            #env.key_filename = cfg.EC2.east_key
+            #run('hostname')

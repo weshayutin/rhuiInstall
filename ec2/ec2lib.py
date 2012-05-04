@@ -59,7 +59,7 @@ class ec2h:
         map['/dev/sda1'] = t
 
         reservation = conn_region.run_instances(ami,
-             instance_type='m1.large', key_name=ec2_keyName,
+             instance_type=hardwareProfile, key_name=ec2_keyName,
              block_device_map=map)
 
         myinstance = reservation.instances[0]
