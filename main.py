@@ -26,6 +26,53 @@ cfg = INIConfig(open('config'))
 myenv = INIConfig(open('environment'))
 
 
+def checkEnvState(thisDict):
+    for i in thisDict.keys():
+            instance = thisDict[i].__dict__
+            hostname = instance['public_dns_name'].encode('ascii')
+            #quick check to make sure everything is up and running
+            x = execute(i, hostname, 'root', cfg.EC2.east_key,
+                 cfg.EC2.east_keyName)
+            if not x.connectionSuccessful:
+                exit(-1)
+            print(x.rc('hostname'))
+
+
+def startInstances(rhuiEnv):
+    ## start an instance
+    e = ec2h(cfg.EC2.region, cfg.EC2.username, cfg.EC2.password)
+    myConn = e.getConnection()
+    dict = {}
+
+    for i in rhuiEnv:
+        thisInstance = e.startInstance(cfg.EC2.ami_id, cfg.EC2.east_keyName,
+            myConn, cfg.EC2.hwp)
+        instanceDetails = thisInstance.__dict__
+        this_hostname = instanceDetails['public_dns_name']
+        print(this_hostname)
+        dict[i] = thisInstance
+    return dict
+
+def getInstall(myRHUIEnv):
+    current = os.getcwd()
+    os.chdir('/tmp')
+    url = cfg.MAIN.dvd
+    s = urlparse(url)
+    dvd = s.path.split('/')[-1]
+    urllib.urlretrieve(url, filename=dvd, reporthook=None, data=None)
+    os.chdir(current)
+    for i in rhuiEnv.keys:
+        e = myRHUIEnv[i]
+        e.scp_put('/tmp/' + dvd, '/root')
+        e.scp_put(cfg.EC2.east_key)
+        e.scp_put('shell/installRHUI.sh', '/root')
+
+
+
+            #env.host_string = hostname
+            #env.user = 'root'
+            #env.key_filename = cfg.EC2.east_key
+            #run('hostname')
 
 
 
@@ -85,51 +132,3 @@ if __name__ == '__main__':
         print('in local')
 
 
-
-def checkEnvState(thisDict):
-    for i in thisDict.keys():
-            instance = thisDict[i].__dict__
-            hostname = instance['public_dns_name'].encode('ascii')
-            #quick check to make sure everything is up and running
-            x = execute(i, hostname, 'root', cfg.EC2.east_key,
-                 cfg.EC2.east_keyName)
-            if not x.connectionSuccessful:
-                exit(-1)
-            print(x.rc('hostname'))
-
-
-def startInstances(rhuiEnv):
-    ## start an instance
-    e = ec2h(cfg.EC2.region, cfg.EC2.username, cfg.EC2.password)
-    myConn = e.getConnection()
-    dict = {}
-
-    for i in rhuiEnv:
-        thisInstance = e.startInstance(cfg.EC2.ami_id, cfg.EC2.east_keyName,
-            myConn, cfg.EC2.hwp)
-        instanceDetails = thisInstance.__dict__
-        this_hostname = instanceDetails['public_dns_name']
-        print(this_hostname)
-        dict[i] = thisInstance
-    return dict
-
-def getInstall(myRHUIEnv):
-    current = os.getcwd()
-    os.chdir('/tmp')
-    url = cfg.MAIN.dvd
-    s = urlparse(url)
-    dvd = s.path.split('/')[-1]
-    urllib.urlretrieve(url, filename=dvd, reporthook=None, data=None)
-    os.chdir(current)
-    for i in rhuiEnv.keys:
-        e = myRHUIEnv[i]
-        e.scp_put('/tmp/' + dvd, '/root')
-        e.scp_put(cfg.EC2.east_key)
-        e.scp_put('shell/installRHUI.sh', '/root')
-
-
-
-            #env.host_string = hostname
-            #env.user = 'root'
-            #env.key_filename = cfg.EC2.east_key
-            #run('hostname')
