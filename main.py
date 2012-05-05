@@ -61,10 +61,10 @@ def getInstall(myRHUIEnv):
     dvd = s.path.split('/')[-1]
     urllib.urlretrieve(url, filename=dvd, reporthook=None, data=None)
     os.chdir(current)
-    for i in rhuiEnv.keys:
+    for i in rhuiEnv.keys():
         e = myRHUIEnv[i]
         e.scp_put('/tmp/' + dvd, '/root')
-        e.scp_put(cfg.EC2.east_key)
+        e.scp_put(cfg.EC2.east_key, '/root')
         e.scp_put('shell/installRHUI.sh', '/root')
 
 
