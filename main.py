@@ -8,11 +8,11 @@ import time
 from iniparse import INIConfig
 sys.path.append('ec2')
 sys.path.append('shell')
+sys.path.append('local')
 from ec2lib import ec2h
 from commandRunner import execute
 from fabric.api import env, run, put, settings
-import  urllib
-from urlparse import urlparse
+from localLib import lc
 
 
 parser = optparse.OptionParser()
@@ -53,28 +53,10 @@ def startInstances(rhuiEnv):
         dict[i] = thisInstance
     return dict
 
-def getInstall(myRHUIEnv):
-    current = os.getcwd()
-    os.chdir('/tmp')
-    url = cfg.MAIN.dvd
-    s = urlparse(url)
-    dvd = s.path.split('/')[-1]
-    urllib.urlretrieve(url, filename=dvd, reporthook=None, data=None)
-    os.chdir(current)
-    for i in rhuiEnv.keys():
-        e = myRHUIEnv[i]
-        e.scp_put('/tmp/' + dvd, '/root')
-        e.scp_put(cfg.EC2.east_key, '/root')
-        e.scp_put('shell/installRHUI.sh', '/root')
-
-
-
             #env.host_string = hostname
             #env.user = 'root'
             #env.key_filename = cfg.EC2.east_key
             #run('hostname')
-
-
 
 if __name__ == '__main__':
     if cfg.MAIN.environment == 'ec2':
@@ -92,19 +74,22 @@ if __name__ == '__main__':
             rhua = dict['RHUA'].__dict__
             rhuaCMD = execute('RHUA', rhua['public_dns_name'].encode('ascii'),
                 'root', cfg.EC2.east_key, cfg.EC2.east_keyName)
-            rhuiEnv['rhua'] = rhuaCMD
+            rhuiEnv['rhua'] = rhua
+            rhuiEnv['rhuaCMD'] = rhuaCMD
 
         if 'CDS1' in thisEnv:
             cds1 = dict['CDS1'].__dict__
             cds1CMD = execute('CDS1', cds1['public_dns_name'].encode('ascii'),
                 'root', cfg.EC2.east_key, cfg.EC2.east_keyName)
-            rhuiEnv['cds1'] = cds1CMD
+            rhuiEnv['cds1'] = cds1
+            rhuiEnv['cds1CMD'] = cds1CMD
 
         if 'CDS2' in thisEnv:
             cds2 = dict['CDS2'].__dict__
             cds2CMD = execute('CDS2', cds2['public_dns_name'].encode('ascii'),
                 'root', cfg.EC2.east_key, cfg.EC2.east_keyName)
-            rhuiEnv['cds2'] = cds2CMD
+            rhuiEnv['cds2'] = cds2
+            rhuiEnv['cds2CMD'] = cds2CMD
 
         if 'CLIENT1' in thisEnv:
             client1 = dict['CLIENT1'].__dict__
@@ -126,7 +111,7 @@ if __name__ == '__main__':
 
         #rhuaCMD.rc('hostname')
         #cds1CMD.rc('cat /etc/redhat-release')
-        getInstall(rhuiEnv)
+        lc.prepInstall(rhuiEnv, cfg.MAIN.dvd, cfg.EC2.east_key)
 
     elif cfg.MAIN.environment == 'local':
         print('in local')

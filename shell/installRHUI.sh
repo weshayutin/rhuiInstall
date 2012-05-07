@@ -13,7 +13,7 @@
 export my_rhua=host.internal	
 export my_cds1=host.internal
 export my_cds2=host.internal
-export ec2pem=/root/wes-us-west-2.pem
+export ec2pem=key
 #export version=2.0.1
 export version=2.0.2
 ## CHANGE ME ####
