@@ -34,12 +34,15 @@ class execute:
         self.scp = SCPClient(self.ssh.get_transport())
 
     def rc(self, command):
+        out = []
         stdin, stdout, stderr  = self.ssh.exec_command(command)
         for line in stdout.read().splitlines():
             print '%s: %s' % (self.nickName, line)
+            out.append(line.encode('ascii'))
         if stderr:
             for line in stderr.read().splitlines():
                 print 'ERROR %s: %s' % (self.nickName, line)
+        return out
 
     def scp_get(self, filepath, localpath):
         self.scp.get(filepath, localpath)

@@ -75,3 +75,7 @@ class lc:
                 conn.scp_put(ec2Key, '/root')
                 print('scp  script ' + ' to ' + public_hostname)
                 conn.scp_put('/tmp/installRHUI.sh', '/root')
+                part = conn.rc('parted -l  | grep Disk  | sed -n 2p')[0][10:14]
+                dict = myRHUIEnv['rhua']
+                dict['partition'] = part
+
