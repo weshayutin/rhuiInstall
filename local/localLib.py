@@ -4,6 +4,7 @@ import os
 import re
 import  urllib
 from urlparse import urlparse
+from fabric.api import env, run, put, settings
 
 
 #local commands
@@ -22,15 +23,6 @@ def sedFile(origFile, newFile, listOfChanges):
             o.close()
 
 class lc:
-
-#    #rewrites file to /tmp
-#    @classmethod
-#    def sedFile(origFile, origTxt, newTxt):
-#        outfile = "/tmp/" + file
-#        o = open(outfile, "w")
-#        data = open(origFile).read()
-#        o.write(re.sub(origTxt, newTxt, data))
-#        o.close()
 
     @staticmethod
     def prepInstall(myRHUIEnv, dvdURL, ec2Key):
@@ -64,18 +56,30 @@ class lc:
         stringToChange.append('export ec2pem=key:export ec2pem=' + ec2Key)
         sedFile('shell/installRHUI.sh', '/tmp/installRHUI.sh', stringToChange)
 
-        for i in myRHUIEnv.keys():
-            e = myRHUIEnv[i]
-            if i == 'rhua':
-                conn = myRHUIEnv['rhuaCMD']
-                public_hostname = e['public_dns_name'].encode('ascii')
-                print('scp ' + dvd + ' to ' + public_hostname)
-                conn.scp_put('/tmp/' + dvd, '/root')
-                print('scp ' + 'ec2_key ' + ' to ' + public_hostname)
-                conn.scp_put(ec2Key, '/root')
-                print('scp  script ' + ' to ' + public_hostname)
-                conn.scp_put('/tmp/installRHUI.sh', '/root')
-                part = conn.rc('parted -l  | grep Disk  | sed -n 2p')[0][10:14]
-                dict = myRHUIEnv['rhua']
-                dict['partition'] = part
+        e = myRHUIEnv['rhua']
+        conn = myRHUIEnv['rhuaCMD']
+        public_hostname = e['public_dns_name'].encode('ascii')
+        print('scp ' + dvd + ' to ' + public_hostname)
+        conn.scp_put('/tmp/' + dvd, '/root')
+        print('scp ' + 'ec2_key ' + ' to ' + public_hostname)
+        conn.scp_put(ec2Key, '/root')
+        print('scp  script ' + ' to ' + public_hostname)
+        conn.scp_put('/tmp/installRHUI.sh', '/root')
+        part = conn.rc('parted -l  | grep Disk  | sed -n 2p')[0][10:14]
+        dict = myRHUIEnv['rhua']
+        dict['partition'] = part
+        #conn.rc('bash /root/installRHUI.sh rhua '+ part)
+
+    @staticmethod
+    def runInstall(myRHUIEnv, ec2Key):
+        rhua = myRHUIEnv['rhua']
+        public_hostname = rhua['public_dns_name'].encode('ascii')
+        part = rhua['partition']
+
+        env.host_string = public_hostname
+        env.user = 'root'
+        env.key_filename = ec2Key
+        run('bash /root/installRHUI.sh rhua ' + part)
+
+
 

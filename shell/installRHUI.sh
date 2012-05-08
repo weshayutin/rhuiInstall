@@ -79,7 +79,7 @@ n
 p
 1
 1
-54823
+
 p
 w
 EOF
@@ -100,13 +100,13 @@ fi
 
 if [ "$server" == "rhua" ]; then
  mkdir -p pem && pushd pem
- openssl req -new -x509 -extensions v3_ca -keyout ca.key -subj '/C=US/ST=NC/L=Raleigh/CN=localhost' -out ca.crt -days 365
+ openssl req -new -x509 -extensions v3_ca -keyout ca.key -subj '/C=US/ST=NC/L=Raleigh/CN=localhost' -out ca.crt -days 365 -nodes
  echo 10 > ca.srl
- openssl genrsa -out server.key 2048
+ openssl genrsa -out server.key 2048 -nodes
 
  for node in $my_rhua $my_cds1 $my_cds2 ; do 
   echo -ne "\n\n\n## set CN for $server\n=="
-  openssl req -new -key server.key -subj '/C=US/ST=NC/L=Raleigh/CN='$node'' -out $node.csr
+  openssl req -new -key server.key -subj '/C=US/ST=NC/L=Raleigh/CN='$node'' -out $node.csr -nodes
   openssl x509 -req -days 365 -CA ca.crt -CAkey ca.key -in $node.csr -out $node.crt
  done
 fi
@@ -125,6 +125,10 @@ fi
 popd
 
 if [ "$server" == "rhua" ]; then
+ sed -i s/'DB_PASSWORD=""'/'DB_PASSWORD="dog8code"'/g /usr/bin/nss-db-gen
+ sed -i s/'read -p'/'#read -p'/g /usr/bin/nss-db-gen
+ sed -i s/'read -sp'/'#read -sp'/g /usr/bin/nss-db-gen
+ sed -i s/'-o client.p12'/'-o client.p12 -k dog8code'/g /usr/bin/nss-db-gen
  nss-db-gen
 fi
 

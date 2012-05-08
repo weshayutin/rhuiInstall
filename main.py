@@ -11,7 +11,6 @@ sys.path.append('shell')
 sys.path.append('local')
 from ec2lib import ec2h
 from commandRunner import execute
-from fabric.api import env, run, put, settings
 from localLib import lc
 
 
@@ -52,11 +51,6 @@ def startInstances(rhuiEnv):
         print(this_hostname)
         dict[i] = thisInstance
     return dict
-
-            #env.host_string = hostname
-            #env.user = 'root'
-            #env.key_filename = cfg.EC2.east_key
-            #run('hostname')
 
 if __name__ == '__main__':
     if cfg.MAIN.environment == 'ec2':
@@ -112,6 +106,7 @@ if __name__ == '__main__':
         #rhuaCMD.rc('hostname')
         #cds1CMD.rc('cat /etc/redhat-release')
         lc.prepInstall(rhuiEnv, cfg.MAIN.dvd, cfg.EC2.east_key)
+        lc.runInstall(rhuiEnv, cfg.EC2.east_key)
 
     elif cfg.MAIN.environment == 'local':
         print('in local')
