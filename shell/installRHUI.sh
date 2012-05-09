@@ -128,7 +128,9 @@ if [ "$server" == "rhua" ]; then
  sed -i s/'DB_PASSWORD=""'/'DB_PASSWORD="dog8code"'/g /usr/bin/nss-db-gen
  sed -i s/'read -p'/'#read -p'/g /usr/bin/nss-db-gen
  sed -i s/'read -sp'/'#read -sp'/g /usr/bin/nss-db-gen
- sed -i s/'-o client.p12'/'-o client.p12 -k dog8code'/g /usr/bin/nss-db-gen
+ sed -i s/'-o client.p12'/'-o client.p12 -w $PWDFILE -W $DB_PASSWORD -k $PWDFILE -K $DB_PASSWORD'/g /usr/bin/nss-db-gen
+ sed -i s/'openssl pkcs12 -in client.p12 -nodes -out client.crt'/'openssl pkcs12 -in client.p12 -nodes -out client.crt -password file:$PWDFILE'/g /usr/bin/nss-db-gen
+
  nss-db-gen
 fi
 
@@ -189,16 +191,16 @@ ssl_key: /root/pem/server.key
 
 DELIM
 
-if [ "$server" == "rhua" ]; then
- /usr/bin/rhui-installer /root/answers.txt
-
- scp -i $ec2pem /root/RH* root@$my_cds1:/root
- scp -i $ec2pem /root/installRHUI.sh root@$my_cds1:/root
- scp -i $ec2pem -r /tmp/rhui root@$my_cds1:/tmp
- scp -i $ec2pem /etc/hosts root@$my_cds1:/etc/hosts
-
- scp -i $ec2pem /root/RH* root@$my_cds2:/root
- scp -i $ec2pem /root/installRHUI.sh root@$my_cds2:/root
- scp -i $ec2pem -r /tmp/rhui root@$my_cds2:/tmp
- scp -i $ec2pem /etc/hosts root@$my_cds2:/etc/hosts
-fi
+#if [ "$server" == "rhua" ]; then
+# /usr/bin/rhui-installer /root/answers.txt
+#
+# scp -i $ec2pem /root/RH* root@$my_cds1:/root
+# scp -i $ec2pem /root/installRHUI.sh root@$my_cds1:/root
+# scp -i $ec2pem -r /tmp/rhui root@$my_cds1:/tmp
+# scp -i $ec2pem /etc/hosts root@$my_cds1:/etc/hosts
+#
+# scp -i $ec2pem /root/RH* root@$my_cds2:/root
+# scp -i $ec2pem /root/installRHUI.sh root@$my_cds2:/root
+# scp -i $ec2pem -r /tmp/rhui root@$my_cds2:/tmp
+# scp -i $ec2pem /etc/hosts root@$my_cds2:/etc/hosts
+#fi

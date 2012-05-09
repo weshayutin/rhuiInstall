@@ -53,7 +53,9 @@ class lc:
                 origTxt = 'export my_cds2=host.internal'
                 newTxt = 'export my_cds2=' + private_hostname
                 stringToChange.append(origTxt + ":" + newTxt)
-        stringToChange.append('export ec2pem=key:export ec2pem=' + ec2Key)
+        keyName = ec2Key.split('/')[-1]
+        stringToChange.append('export ec2pem=key:export ec2pem=/root/'
+            + keyName)
         sedFile('shell/installRHUI.sh', '/tmp/installRHUI.sh', stringToChange)
 
         e = myRHUIEnv['rhua']
