@@ -44,8 +44,9 @@ def startInstances(rhuiEnv):
     dict = {}
 
     for i in rhuiEnv:
+        sec_group = [cfg.EC2.sec_group]
         thisInstance = e.startInstance(cfg.EC2.ami_id, cfg.EC2.east_keyName,
-            myConn, cfg.EC2.hwp)
+            myConn, cfg.EC2.hwp, sec_group)
         instanceDetails = thisInstance.__dict__
         this_hostname = instanceDetails['public_dns_name']
         print(this_hostname)
@@ -103,8 +104,6 @@ if __name__ == '__main__':
             proxy['public_dns_name'].encode('ascii'),
             'root', cfg.EC2.east_key, cfg.EC2.east_keyName)
 
-        #rhuaCMD.rc('hostname')
-        #cds1CMD.rc('cat /etc/redhat-release')
         lc.prepInstall(rhuiEnv, cfg.MAIN.dvd, cfg.EC2.east_key)
         lc.runInstall(rhuiEnv, cfg.EC2.east_key)
         lc.installCDS(thisEnv, rhuiEnv, cfg.EC2.east_key)

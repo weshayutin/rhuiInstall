@@ -50,17 +50,17 @@ class ec2h:
             aws_secret_access_key=self.secret)
 
     '''starts instance, returns ec2 instances object'''
-    def startInstance(self, ami, ec2_keyName, ec2connection, hardwareProfile):
+    def startInstance(self, ami, ec2_keyName, ec2connection, hardwareProfile,
+        sec_group):
         conn_region = ec2connection
         map = BlockDeviceMapping()
         t = EBSBlockDeviceType()
         t.size = '15'
         #map = {'DeviceName':'/dev/sda','VolumeSize':'15'}
         map['/dev/sda1'] = t
-
         reservation = conn_region.run_instances(ami,
              instance_type=hardwareProfile, key_name=ec2_keyName,
-             block_device_map=map)
+             security_groups=sec_group, block_device_map=map)
 
         myinstance = reservation.instances[0]
 
@@ -69,7 +69,6 @@ class ec2h:
             time.sleep(5)
             print myinstance.update()
 
-        instanceDetails = myinstance.__dict__
         #pprint(instanceDetails)
         return myinstance
 
