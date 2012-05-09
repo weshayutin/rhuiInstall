@@ -107,6 +107,7 @@ if __name__ == '__main__':
         #cds1CMD.rc('cat /etc/redhat-release')
         lc.prepInstall(rhuiEnv, cfg.MAIN.dvd, cfg.EC2.east_key)
         lc.runInstall(rhuiEnv, cfg.EC2.east_key)
+        lc.installCDS(thisEnv, rhuiEnv, cfg.EC2.east_key)
 
     elif cfg.MAIN.environment == 'local':
         print('in local')
