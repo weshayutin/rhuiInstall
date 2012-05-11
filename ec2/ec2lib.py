@@ -1,20 +1,16 @@
 #!/usr/bin/python -tt
 
-import os
-import sys
+
 import time
-from iniparse import INIConfig
+#from boto import ec2
 from boto import ec2
-import boto
-import thread
-from pprint import pprint
 from boto.ec2.blockdevicemapping import EBSBlockDeviceType, BlockDeviceMapping
 
 
 
 class ec2h:
 
-    def __init__(self,region, key, secret,):
+    def __init__(self,region, key, secret):
         self.region = region
         self.key = key
         self.secret = secret
@@ -44,7 +40,7 @@ class ec2h:
 
     def getConnection(self):
         """establish a connection with ec2"""
-        reg = boto.ec2.get_region(self.region, aws_access_key_id=self.key,
+        reg = ec2.get_region(self.region, aws_access_key_id=self.key,
             aws_secret_access_key=self.secret)
         return reg.connect(aws_access_key_id=self.key,
             aws_secret_access_key=self.secret)

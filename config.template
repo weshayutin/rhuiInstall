@@ -1,11 +1,22 @@
+[MAIN]
+environment = ec2
+#environment = local
+dvd = http://download.devel.redhat.com/released/RHEL-6-Server-RHUI/2.0.3/iso/RHEL-6.2-RHUI-2.0.3-20120416.0-Server-x86_64-DVD1.iso 
+
 [EC2]
-ec2_username = 
-ec2_password =
-ec2_account =
-ec2_x509_pub =
-ec2_x509_pri =
-ec2_east_key =
-ec2_west_key =
+username = AKV2EQ 
+password = 7CW3ej9QI/j6WvYiHdg
+account = 65-9-50
+x509_pub = /home/whayutin/.ec2/WESHAYUTIN/cert-S43.pem
+x509_pri = /home/whayutin/.ec2/WESHAYUTIN/pk-S43.pem
+east_key = /home/whayutin/.ec2/WESHAYUTIN/cloude-key.pem
+east_keyName = cloude-key
+west_key = /home/whayutin/.ec2/WESHAYUTIN/wes-us-westkey.pem
+west_keyName = wes-us-westkey
+region = us-east-1
+sec_group = CDS Security Group
+ami_id = ami-41d00528
+hwp = m1.small
 
 [LOCAL]
 username = root

@@ -5,6 +5,7 @@ import re
 import  urllib
 from urlparse import urlparse
 from fabric.api import env, run  # , put, settings
+#also considering rpyc
 
 
 #local commands

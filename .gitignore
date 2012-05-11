@@ -1,2 +1,5 @@
 config
 *.pyc
+.pydevproject
+.project
+rhuiInstall.nja
