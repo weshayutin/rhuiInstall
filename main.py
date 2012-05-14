@@ -59,7 +59,7 @@ if __name__ == '__main__':
         dict = startInstances(thisEnv)
         ## wait for instance and check ssh
         print('wait for instances to boot for 130 seconds')
-        time.sleep(130)
+        time.sleep(float(cfg.EC2.sleepForInstance))
         print('done waiting for instances to boot')
         checkEnvState(dict)
 

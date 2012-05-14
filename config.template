@@ -17,6 +17,7 @@ region = us-east-1
 sec_group = CDS Security Group
 ami_id = ami-41d00528
 hwp = m1.small
+sleepForInstance = 240
 
 [LOCAL]
 username = root
