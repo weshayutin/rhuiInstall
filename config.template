@@ -25,3 +25,11 @@ password =
 rhua_hostname = 
 cds1_hostname = 
 cds2_hostname = 
+
+[PROXY]
+auth = False
+#hostname = 
+#port = 
+#username = 
+#password = 
+
