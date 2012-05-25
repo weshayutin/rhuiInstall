@@ -52,6 +52,7 @@ class lc:
                 print('scp ' + 'ec2_key ' + ' to ' + public_hostname)
                 conn.scp_put(ec2Key, '/root')
                 conn.scp_put('ec2/prepEC2partitions.sh', '/root')
+                conn.scp_put(e['ent_cert'], '/root')
 
             if i == 'cds1':
                 #update config
@@ -187,14 +188,14 @@ class lc:
         print(cmd)
         rhuaCMD.rc(cmd)
         rhuaCMD.rc('cat /etc/pulp/pulp.conf | grep proxy')
-        rhuaCMD.rc('service pulp-server-restart')
+        rhuaCMD.rc('service pulp-server restart')
                 
         if prxy['proxyAuth'] == 'True':
             print('adding proxy settings for user auth')
         else:
             print('no authentication')
         
-        conn.rc('service squid start')
+        conn.rc('service squid restart')
         
         '''
         test proxy w/

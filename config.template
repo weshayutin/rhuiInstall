@@ -33,3 +33,5 @@ auth = False
 #username = 
 #password = 
 
+[ENT_CERTS]
+cert = /home/user/cert
