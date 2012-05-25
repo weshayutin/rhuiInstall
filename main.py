@@ -72,7 +72,7 @@ if __name__ == '__main__':
                               'root', cfg.EC2.east_key, cfg.EC2.east_keyName)
             rhuiEnv['rhua'] = rhua
             rhuiEnv['rhuaCMD'] = rhuaCMD
-            
+            rhua['ent_cert'] = cfg.ENT_CERTS.cert
 
         if 'CDS1' in thisEnv:
             cds1 = dict['CDS1'].__dict__
