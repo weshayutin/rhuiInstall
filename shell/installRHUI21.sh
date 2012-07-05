@@ -85,32 +85,6 @@ fi
 
 popd
 
-
-
-if [ "$server" == "rhua" ]; then
- if [ -e "/etc/pulp/pulp.conf" ]; then
-  perl -npe 's/server_name: localhost/server_name: '${my_rhua}'/g' -i /etc/pulp/pulp.conf;
-  cat /etc/pulp/pulp.conf | grep server_name 
- fi
- if [ -e "/etc/pulp/client.conf" ]; then
-  perl -npe 's/host = localhost.localdomain/host = '${my_rhua}'/g' -i /etc/pulp/client.conf;
-  cat /etc/pulp/client.conf | grep host
- fi
- if [ -e "/etc/pulp/consumer/consumer.conf" ]; then
-  perl -npe 's/host = localhost.localdomain/host = '${my_rhua}'/g' -i /etc/pulp/consumer/consumer.conf;
-  cat /etc/pulp/consumer/consumer.conf | grep host
- fi
- if [ -e "/etc/rhui/rhui-tools.conf" ]; then
-  perl -npe 's/hostname: localhost/hostname: '${my_rhua}'/g' -i /etc/rhui/rhui-tools.conf;
-  cat /etc/rhui/rhui-tools.conf | grep hostname
- fi
-fi
-
-if [[ "$server" == "cds1" ]] || [[ "$server" == "cds2" ]]; then
- perl -npe 's/host = localhost.localdomain/host = '${my_rhua}'/g' -i /etc/pulp/cds.conf;
- cat /etc/pulp/cds.conf | grep host
-fi
-
 export cert=.crt
 
 cat > /root/answers.txt <<DELIM
