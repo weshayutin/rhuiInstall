@@ -36,6 +36,9 @@ def checkEnvState(thisDict):
             exit(-1)
         print(x.rc('hostname'))
 
+def get_rhui_version():
+    dvd = cfg.MAIN.dvd
+    return dvd.split('/')[-1].split('-')[3]
 
 def startInstances(rhuiEnv):
     ## start an instance
