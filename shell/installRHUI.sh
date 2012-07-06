@@ -16,8 +16,12 @@ export my_cds2=host.internal
 #export my_proxy=host.internal
 export ec2pem=key
 #export version=2.0.1
-export version=2.0.2
+export version=change_me
 ## CHANGE ME ####
+
+echo "#### VERSION #######"
+echo $version
+echo "#### VERSION #######"
 
 #options rhua or cds
 export server="$1"
@@ -85,7 +89,7 @@ fi
 
 popd
 
-if [ "$server" == "rhua" ]; then
+if [[ "$server" == "rhua"]] && [["$version" == "2.0.*" ]]; then
  sed -i s/'DB_PASSWORD=""'/'DB_PASSWORD="dog8code"'/g /usr/bin/nss-db-gen
  sed -i s/'read -p'/'#read -p'/g /usr/bin/nss-db-gen
  sed -i s/'read -sp'/'#read -sp'/g /usr/bin/nss-db-gen
@@ -95,40 +99,71 @@ if [ "$server" == "rhua" ]; then
  nss-db-gen
 fi
 
+if [ "$version" == "2.0"* ]; then
+	if [ "$server" == "rhua" ]; then
+	 if [ -e "/etc/pulp/pulp.conf" ]; then
+	  perl -npe 's/server_name: localhost/server_name: '${my_rhua}'/g' -i /etc/pulp/pulp.conf;
+	  cat /etc/pulp/pulp.conf | grep server_name 
+	 fi
+	 if [ -e "/etc/pulp/client.conf" ]; then
+	  perl -npe 's/host = localhost.localdomain/host = '${my_rhua}'/g' -i /etc/pulp/client.conf;
+	  cat /etc/pulp/client.conf | grep host
+	 fi
+	 if [ -e "/etc/pulp/consumer/consumer.conf" ]; then
+	  perl -npe 's/host = localhost.localdomain/host = '${my_rhua}'/g' -i /etc/pulp/consumer/consumer.conf;
+	  cat /etc/pulp/consumer/consumer.conf | grep host
+	 fi
+	 if [ -e "/etc/rhui/rhui-tools.conf" ]; then
+	  perl -npe 's/hostname: localhost/hostname: '${my_rhua}'/g' -i /etc/rhui/rhui-tools.conf;
+	  cat /etc/rhui/rhui-tools.conf | grep hostname
+	 fi
+	fi
 
-if [ "$server" == "rhua" ]; then
- if [ -e "/etc/pulp/pulp.conf" ]; then
-  perl -npe 's/server_name: localhost/server_name: '${my_rhua}'/g' -i /etc/pulp/pulp.conf;
-  cat /etc/pulp/pulp.conf | grep server_name 
- fi
- if [ -e "/etc/pulp/client.conf" ]; then
-  perl -npe 's/host = localhost.localdomain/host = '${my_rhua}'/g' -i /etc/pulp/client.conf;
-  cat /etc/pulp/client.conf | grep host
- fi
- if [ -e "/etc/pulp/consumer/consumer.conf" ]; then
-  perl -npe 's/host = localhost.localdomain/host = '${my_rhua}'/g' -i /etc/pulp/consumer/consumer.conf;
-  cat /etc/pulp/consumer/consumer.conf | grep host
- fi
- if [ -e "/etc/rhui/rhui-tools.conf" ]; then
-  perl -npe 's/hostname: localhost/hostname: '${my_rhua}'/g' -i /etc/rhui/rhui-tools.conf;
-  cat /etc/rhui/rhui-tools.conf | grep hostname
- fi
-fi
-
-if [[ "$server" == "cds1" ]] || [[ "$server" == "cds2" ]]; then
- perl -npe 's/host = localhost.localdomain/host = '${my_rhua}'/g' -i /etc/pulp/cds.conf;
- cat /etc/pulp/cds.conf | grep host
+	if [[ "$server" == "cds1" ]] || [[ "$server" == "cds2" ]]; then
+	 perl -npe 's/host = localhost.localdomain/host = '${my_rhua}'/g' -i /etc/pulp/cds.conf;
+	 cat /etc/pulp/cds.conf | grep host
+	fi
 fi
 
 export cert=.crt
 
-cat > /root/answers.txt <<DELIM
+cat > /root/answers20x.txt <<DELIM
 [general]
 version: 1.0
 dest_dir: /tmp/rhui
 qpid_ca: /tmp/rhua/qpid/ca.crt
 qpid_client: /tmp/rhua/qpid/client.crt
 qpid_nss_db: /tmp/rhua/qpid/nss
+[rhua]
+rpm_name: rh-rhua-config
+hostname: $my_rhua
+ssl_cert: /root/pem/$my_rhua$cert
+ssl_key: /root/pem/server.key
+ca_cert: /root/pem/ca.crt
+# proxy_server_host: proxy.example.com
+# proxy_server_port: 443
+# proxy_server_username: admin
+# proxy_server_password: password
+[cds-1]
+rpm_name: rh-cds1-config
+hostname: $my_cds1
+ssl_cert: /root/pem/$my_cds1$cert
+ssl_key: /root/pem/server.key
+[cds-2]
+rpm_name: rh-cds2-config
+hostname: $my_cds2
+ssl_cert: /root/pem/$my_cds2$cert
+ssl_key: /root/pem/server.key
+
+DELIM
+
+cat > /root/answers21x.txt <<DELIM
+[general]
+version: 1.0
+dest_dir: /tmp/rhui
+qpid_ca: /etc/rhui/qpid/ca.crt
+qpid_client: /etc/rhui/qpid/client.crt
+qpid_nss_db: /etc/rhui/qpid/nss
 [rhua]
 rpm_name: rh-rhua-config
 hostname: $my_rhua

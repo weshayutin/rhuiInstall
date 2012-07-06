@@ -27,6 +27,7 @@ class lc:
 
     @staticmethod
     def prepInstall(myRHUIEnv, clientEnv, dvdURL, ec2Key):
+        rhuiVersion = dvdURL.split('/')[-1].split('-')[3]
         current = os.getcwd()
         os.chdir('/tmp')
         s = urlparse(dvdURL)
@@ -42,6 +43,10 @@ class lc:
                 private_hostname = e['private_dns_name'].encode('ascii')
                 origTxt = 'export my_rhua=host.internal'
                 newTxt = 'export my_rhua=' + private_hostname
+                stringToChange.append(origTxt + "::" + newTxt)
+                #version
+                origTxt = 'export version=change_me'
+                newTxt = 'export version=' + rhuiVersion
                 stringToChange.append(origTxt + "::" + newTxt)
                 #scp iso
                 conn = myRHUIEnv['rhuaCMD']
@@ -112,7 +117,7 @@ class lc:
         #conn.rc('bash /root/installRHUI.sh rhua '+ part)
 
     @staticmethod
-    def runInstall(myRHUIEnv, ec2Key):
+    def runInstall(myRHUIEnv, ec2Key, rhui_version):
         rhua = myRHUIEnv['rhua']
         conn = myRHUIEnv['rhuaCMD']
         public_hostname = rhua['public_dns_name'].encode('ascii')
@@ -123,7 +128,10 @@ class lc:
         env.key_filename = ec2Key
         run('bash /root/prepEC2partitions.sh rhua ' + part)
         run('bash /root/installRHUI.sh rhua ')
-        run('rhui-installer /root/answers.txt')
+        if rhui_version[0:3] == '2.0':
+            run('rhui-installer /root/answers20x.txt')
+        else:
+            run('rhui-installer /root/answers21x.txt')
         run('tar -cvf /root/rhuiCFG.tar /tmp/rhui')
 
         conn.scp_get('/root/rhuiCFG.tar', '/tmp')
