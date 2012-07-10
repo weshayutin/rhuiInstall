@@ -98,6 +98,7 @@ if [[ "$version" == 2.0* ]]; then
     sed -i s/'openssl pkcs12 -in client.p12 -nodes -out client.crt'/'openssl pkcs12 -in client.p12 -nodes -out client.crt -password file:$PWDFILE'/g /usr/bin/nss-db-gen
 
     nss-db-gen
+  fi
 fi
 
 if [[ "$version" == 2.0* ]]; then
