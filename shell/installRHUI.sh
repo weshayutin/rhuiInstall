@@ -89,17 +89,18 @@ fi
 
 popd
 
-if [[ "$server" == "rhua"]] && [["$version" == "2.0.*" ]]; then
- sed -i s/'DB_PASSWORD=""'/'DB_PASSWORD="dog8code"'/g /usr/bin/nss-db-gen
- sed -i s/'read -p'/'#read -p'/g /usr/bin/nss-db-gen
- sed -i s/'read -sp'/'#read -sp'/g /usr/bin/nss-db-gen
- sed -i s/'-o client.p12'/'-o client.p12 -w $PWDFILE -W $DB_PASSWORD -k $PWDFILE -K $DB_PASSWORD'/g /usr/bin/nss-db-gen
- sed -i s/'openssl pkcs12 -in client.p12 -nodes -out client.crt'/'openssl pkcs12 -in client.p12 -nodes -out client.crt -password file:$PWDFILE'/g /usr/bin/nss-db-gen
+if [[ "$version" == 2.0* ]]; then
+  if [ "$server" == "rhua" ]; then
+    sed -i s/'DB_PASSWORD=""'/'DB_PASSWORD="dog8code"'/g /usr/bin/nss-db-gen
+    sed -i s/'read -p'/'#read -p'/g /usr/bin/nss-db-gen
+    sed -i s/'read -sp'/'#read -sp'/g /usr/bin/nss-db-gen
+    sed -i s/'-o client.p12'/'-o client.p12 -w $PWDFILE -W $DB_PASSWORD -k $PWDFILE -K $DB_PASSWORD'/g /usr/bin/nss-db-gen
+    sed -i s/'openssl pkcs12 -in client.p12 -nodes -out client.crt'/'openssl pkcs12 -in client.p12 -nodes -out client.crt -password file:$PWDFILE'/g /usr/bin/nss-db-gen
 
- nss-db-gen
+    nss-db-gen
 fi
 
-if [ "$version" == "2.0"* ]; then
+if [[ "$version" == 2.0* ]]; then
 	if [ "$server" == "rhua" ]; then
 	 if [ -e "/etc/pulp/pulp.conf" ]; then
 	  perl -npe 's/server_name: localhost/server_name: '${my_rhua}'/g' -i /etc/pulp/pulp.conf;
