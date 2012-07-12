@@ -9,13 +9,6 @@ from boto.ec2.blockdevicemapping import EBSBlockDeviceType, BlockDeviceMapping
 
 
 class ec2h:
-
-    def __init__(self,region, key, secret):
-        self.region = region
-        self.key = key
-        self.secret = secret
-
-
     # Define hwp
     m1Small = {"name":"m1.small", "memory":"1700000", "cpu":"1", "arch":"i386"}
     m1Large = {"name": "m1.large","memory":"7500000","cpu":"2","arch":"x86_64"}
@@ -27,7 +20,6 @@ class ec2h:
     c1Medium = {"name":"c1.medium","memory":"1700000","cpu":"2","arch":"i386"}
     c1Xlarge = {"name":"c1.xlarge","memory":"7000000","cpu":"8","arch":"x86_64"}
 
-
     #Use all hwp types for ec2 memory tests, other hwp tests
     #hwp_i386 = [c1Medium, t1Micro , m1Small ]
     #hwp_x86_64 = [m1Xlarge, t1Micro , m1Large , m24Xlarge , c1Xlarge]
@@ -38,24 +30,29 @@ class ec2h:
     hwp_i386 = [c1Medium]
     hwp_x86_64 = [m1Large]
 
-    def getConnection(self):
+
+    def __init__(self,region_name, key, secret):
         """establish a connection with ec2"""
-        reg = ec2.get_region(self.region, aws_access_key_id=self.key,
+        self.region_name = region_name
+        self.key = key
+        self.secret = secret
+        self.region = ec2.get_region(self.region_name, aws_access_key_id=self.key,
             aws_secret_access_key=self.secret)
-        return reg.connect(aws_access_key_id=self.key,
+        self.connection = self.region.connect(aws_access_key_id=self.key,
             aws_secret_access_key=self.secret)
+        
+    def getConnection(self):
+        return self.connection
 
     '''starts instance, returns ec2 instances object'''
-    def startInstance(self, ami, ec2_keyName, ec2connection, hardwareProfile,
-        sec_group):
-        conn_region = ec2connection
+    def startInstance(self, ami, ec2_keyName, sec_group):
         map = BlockDeviceMapping()
         t = EBSBlockDeviceType()
         t.size = '15'
         #map = {'DeviceName':'/dev/sda','VolumeSize':'15'}
         map['/dev/sda1'] = t
-        reservation = conn_region.run_instances(ami,
-             instance_type=hardwareProfile, key_name=ec2_keyName,
+        reservation = self.connection.run_instances(ami,
+             instance_type='m1.large', key_name=ec2_keyName,
              security_groups=sec_group, block_device_map=map)
 
         myinstance = reservation.instances[0]

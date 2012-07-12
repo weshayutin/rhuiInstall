@@ -13,6 +13,7 @@
 export my_rhua=host.internal	
 export my_cds1=host.internal
 export my_cds2=host.internal
+export my_cds3=host.internal
 #export my_proxy=host.internal
 export ec2pem=key
 #export version=2.0.1
@@ -30,25 +31,22 @@ export server="$1"
 export rhua_ip='dig +short $my_rhua' 
 export cds1_ip='dig +short $my_cds1'
 export cds2_ip='dig +short $my_cds2'
+export cds3_ip=`dig +short $my_cds3`
 
 echo "$rhua_ip $my_rhua" >> /etc/hosts
 echo "$cds1_ip $my_cds1" >> /etc/hosts
 echo "$cds2_ip $my_cds2" >> /etc/hosts
+echo "$cds3_ip $my_cds3" >> /etc/hosts
 
 if [ "$version" == "2.0.1" ]; then
  setenforce 0;
  perl -npe 's/SELINUX=enforcing/SELINUX=permissive/g' -i /etc/selinux/config;
 fi
 
-if [ "$server" == "cds1" ]; then
- echo "CDS1 Selected"
- hostname -v $my_cds1
-fi
-
-if [ "$server" == "cds2" ]; then
- echo "CDS2 Selected"
- hostname -v $my_cds2
-fi
+# set hostname
+eval my_hostname=\$my_$server
+echo "Configuring $server: $my_hostname"
+hostname -v $my_hostname
 
 iptables --flush
 
@@ -69,7 +67,7 @@ if [ "$server" == "rhua" ]; then
  echo 10 > ca.srl
  openssl genrsa -out server.key 2048 -nodes
 
- for node in $my_rhua $my_cds1 $my_cds2 ; do 
+ for node in $my_rhua $my_cds1 $my_cds2 $my_cds3 ; do 
   echo -ne "\n\n\n## set CN for $server\n=="
   openssl req -new -key server.key -subj '/C=US/ST=NC/L=Raleigh/CN='$node'' -out $node.csr -nodes
   openssl x509 -req -days 365 -CA ca.crt -CAkey ca.key -in $node.csr -out $node.crt
@@ -83,7 +81,7 @@ if [ "$server" == "rhua" ]; then
  yum -y install rpm-build
  ./install_RHUA.sh ;./install_tools.sh 
 fi
-if [[ "$server" == "cds1" ]] || [[ "$server" == "cds2" ]]; then
+if [[ "$server" =~ "cds" ]]; then
  ./install_CDS.sh
 fi
 
@@ -101,30 +99,33 @@ if [[ "$version" == 2.0* ]]; then
   fi
 fi
 
-if [[ "$version" == 2.0* ]]; then
-	if [ "$server" == "rhua" ]; then
-	 if [ -e "/etc/pulp/pulp.conf" ]; then
-	  perl -npe 's/server_name: localhost/server_name: '${my_rhua}'/g' -i /etc/pulp/pulp.conf;
-	  cat /etc/pulp/pulp.conf | grep server_name 
-	 fi
-	 if [ -e "/etc/pulp/client.conf" ]; then
-	  perl -npe 's/host = localhost.localdomain/host = '${my_rhua}'/g' -i /etc/pulp/client.conf;
-	  cat /etc/pulp/client.conf | grep host
-	 fi
-	 if [ -e "/etc/pulp/consumer/consumer.conf" ]; then
-	  perl -npe 's/host = localhost.localdomain/host = '${my_rhua}'/g' -i /etc/pulp/consumer/consumer.conf;
-	  cat /etc/pulp/consumer/consumer.conf | grep host
-	 fi
-	 if [ -e "/etc/rhui/rhui-tools.conf" ]; then
-	  perl -npe 's/hostname: localhost/hostname: '${my_rhua}'/g' -i /etc/rhui/rhui-tools.conf;
-	  cat /etc/rhui/rhui-tools.conf | grep hostname
-	 fi
-	fi
+function rhua_hostname_config() {
+ # does this kind of substitution
+ #  host: <host>
+ #  server_name: <host>
+ #  hostname= <host>
+ local host=$1
+ local config=$2
+ [ -w "${config}" ] && \
+  sed -i -e  "s/^[\t\ ]*\(host\(name\)\?\|server_name\)[\t\ ]*\([=:][\t\ ]*\).*/\1\3$host/g" $config
+}
 
-	if [[ "$server" == "cds1" ]] || [[ "$server" == "cds2" ]]; then
-	 perl -npe 's/host = localhost.localdomain/host = '${my_rhua}'/g' -i /etc/pulp/cds.conf;
-	 cat /etc/pulp/cds.conf | grep host
-	fi
+if [[ "$version" == 2.0* ]]; then
+ case "$server" in
+  rhua)
+   config_files=( /etc/pulp/pulp.conf /etc/pulp/cds.conf \
+    /etc/pulp/consumer/consumer.conf /etc/rhui/rhui-tools.conf )
+   ;;
+   cds*)
+    # cds.conf will be updated during the cds config rpm installation
+    config_files=( )
+   ;;
+ esac
+
+ for config in ${config_files[@]} ; do
+  rhua_hostname_config ${my_rhua} ${config}
+  grep ${my_rhua} ${config}
+ done	
 fi
 
 export cert=.crt
@@ -156,6 +157,11 @@ rpm_name: rh-cds2-config
 hostname: $my_cds2
 ssl_cert: /root/pem/$my_cds2$cert
 ssl_key: /root/pem/server.key
+[cds-3]
+rpm_name: rh-cds3-config
+hostname: $my_cds3
+ssl_cert: /root/pem/$my_cds3$cert
+ssl_key: /root/pem/server.key
 
 DELIM
 
@@ -185,6 +191,11 @@ ssl_key: /root/pem/server.key
 rpm_name: rh-cds2-config
 hostname: $my_cds2
 ssl_cert: /root/pem/$my_cds2$cert
+ssl_key: /root/pem/server.key
+[cds-3]
+rpm_name: rh-cds3-config
+hostname: $my_cds3
+ssl_cert: /root/pem/$my_cds3$cert
 ssl_key: /root/pem/server.key
 
 DELIM

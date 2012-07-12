@@ -1,24 +1,28 @@
-!#/bin/bash
+#!/bin/bash
 #options rhua or cds
 export server="$1"
 #options /dev/$someDevice
 export device="$2"
+export partition=1
 
-if [ "$server" == "rhua" ]; then
- echo "RHUI Selected"
- mkdir /var/lib/pulp
- chown apache:apache /var/lib/pulp
- ls /var/lib/pulp
- hostname -v $my_rhua
-fi
-if [[ "$server" == "cds1" ]] || [[ "$server" == "cds2" ]]; then
- echo "CDS Selected"
- mkdir /var/lib/pulp-cds
- chown apache:apache /var/lib/pulp-cds
- ls /var/lib/pulp-cds
-fi
+case "$server" in
+ rhua)
+  pulp_dir=/var/lib/pulp
+ ;;
+ cds*)
+  pulp_dir=/var/lib/pulp-cds
+ ;;
+ *)
+  echo "unsupported server: $server" >&2
+  exit 1
+ ;;
+esac
 
-fdisk /dev/$device << EOF
+echo selected $server
+
+set -x
+set -e
+ fdisk /dev/$device << FDISK_SCRIPT
 n
 p
 1
@@ -26,20 +30,21 @@ p
 
 p
 w
-EOF
+FDISK_SCRIPT
 
-export partition=1
-mkfs.ext4 /dev/$device$partition
+ mkfs.ext4 /dev/$device$partition
+ yum -y install httpd
+ mkdir -p $pulp_dir
+ chown apache:apache $pulp_dir
+ chmod g+ws,o+t $pulp_dir
 
-if [ "$server" == "rhua" ]; then
- echo "/dev/$device$partition /var/lib/pulp ext4 defaults 1 1" >> /etc/fstab
- mount -a 
- mount 
-fi
-if [[ "$server" == "cds1" ]] || [[ "$server" == "cds2" ]]; then
- echo "/dev/$device$partition /var/lib/pulp-cds ext4 defaults 1 1" >> /etc/fstab
- mount -a
- mount
-fi
+ echo "/dev/$device$partition $pulp_dir ext4 defaults 1 1" >> /etc/fstab
+ mount $pulp_dir
+set +x
+set +e
+
+ls -d $pulp_dir
+mount
+
 
 

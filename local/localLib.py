@@ -84,6 +84,19 @@ class lc:
                 print('scp ' + dvd + ' to ' + public_hostname)
                 conn.scp_put('/tmp/' + dvd, '/root')
                 conn.scp_put('ec2/prepEC2partitions.sh', '/root')
+                
+            if i == 'cds3':
+                #update config
+                private_hostname = e['private_dns_name'].encode('ascii')
+                origTxt = 'export my_cds3=host.internal'
+                newTxt = 'export my_cds3=' + private_hostname
+                stringToChange.append(origTxt + "::" + newTxt)
+                #scp iso
+                conn = myRHUIEnv['cds3CMD']
+                public_hostname = e['public_dns_name'].encode('ascii')
+                print('scp ' + dvd + ' to ' + public_hostname)
+                conn.scp_put('/tmp/' + dvd, '/root')
+                conn.scp_put('ec2/prepEC2partitions.sh', '/root')
         
         for i in clientEnv.keys():
             e = clientEnv[i]
@@ -172,6 +185,22 @@ class lc:
             run('bash /root/prepEC2partitions.sh cds2 ' + part)
             run('bash /root/installRHUI.sh cds2')
             run('rpm -Uvh /root/tmp/rhui/rh-cds1-config-1.0-2.el6.noarch.rpm')
+            
+        if 'CDS3' in configEnv:
+            cds3 = myRHUIEnv['cds3']
+            conn = myRHUIEnv['cds3CMD']
+            conn.scp_put('/tmp/rhuiCFG.tar', '/root/')
+            conn.scp_put('/tmp/installRHUI.sh', '/root')
+            public_hostname = cds3['public_dns_name'].encode('ascii')
+            env.host_string = public_hostname
+
+            run('tar -xvf /root/rhuiCFG.tar')
+            run('cp -Rv /root/tmp/rhui /tmp')
+            rhua = myRHUIEnv['rhua']
+            part = rhua['partition']
+            run('bash /root/prepEC2partitions.sh cds3 ' + part)
+            run('bash /root/installRHUI.sh cds3')
+            run('rpm -Uvh /root/tmp/rhui/rh-cds3-config-1.0-2.el6.noarch.rpm')
             
     @staticmethod
     def installSquidProxy(clientEnv, myRHUIEnv):

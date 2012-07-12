@@ -48,8 +48,7 @@ def startInstances(rhuiEnv):
 
     for i in rhuiEnv:
         sec_group = [cfg.EC2.sec_group]
-        thisInstance = e.startInstance(cfg.EC2.ami_id, cfg.EC2.east_keyName,
-                                       myConn, cfg.EC2.hwp, sec_group)
+        thisInstance = e.startInstance(cfg.EC2.ami_id, cfg.EC2.east_keyName, sec_group)
         instanceDetails = thisInstance.__dict__
         this_hostname = instanceDetails['public_dns_name']
         print(this_hostname)
@@ -90,6 +89,14 @@ if __name__ == '__main__':
                               'root', cfg.EC2.east_key, cfg.EC2.east_keyName)
             rhuiEnv['cds2'] = cds2
             rhuiEnv['cds2CMD'] = cds2CMD
+
+        if 'CDS3' in thisEnv:
+            cds3 = dict['CDS3'].__dict__
+            cds3CMD = execute('CDS3', cds3['public_dns_name'].encode('ascii'),
+                              'root', cfg.EC2.east_key, cfg.EC2.east_keyName)
+            rhuiEnv['cds3'] = cds3
+            rhuiEnv['cds3CMD'] = cds3CMD
+
         
 
              
@@ -120,7 +127,7 @@ if __name__ == '__main__':
             lc.prepInstall(rhuiEnv, clientEnv, cfg.MAIN.dvd, cfg.EC2.east_key)
             lc.runInstall(rhuiEnv, cfg.EC2.east_key, get_rhui_version())
         #install CDS
-        if 'CDS1' or 'CDS2' in thisEnv:
+        if 'CDS1' or 'CDS2' or 'CDS3' in thisEnv:
             lc.installCDS(thisEnv, rhuiEnv)
         #Install PROXY
         if 'PROXY' in thisEnv:
