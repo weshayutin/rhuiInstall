@@ -48,7 +48,7 @@ def startInstances(rhuiEnv):
 
     for i in rhuiEnv:
         sec_group = [cfg.EC2.sec_group]
-        thisInstance = e.startInstance(cfg.EC2.ami_id, cfg.EC2.east_keyName, sec_group)
+        thisInstance = e.startInstance(cfg.EC2.ami_id, cfg.EC2.east_keyName, sec_group, cfg.EC2.hwp)
         instanceDetails = thisInstance.__dict__
         this_hostname = instanceDetails['public_dns_name']
         print(this_hostname)

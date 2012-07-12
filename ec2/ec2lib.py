@@ -45,14 +45,14 @@ class ec2h:
         return self.connection
 
     '''starts instance, returns ec2 instances object'''
-    def startInstance(self, ami, ec2_keyName, sec_group):
+    def startInstance(self, ami, ec2_keyName, sec_group, hwp):
         map = BlockDeviceMapping()
         t = EBSBlockDeviceType()
         t.size = '15'
         #map = {'DeviceName':'/dev/sda','VolumeSize':'15'}
         map['/dev/sda1'] = t
         reservation = self.connection.run_instances(ami,
-             instance_type='m1.large', key_name=ec2_keyName,
+             instance_type=hwp, key_name=ec2_keyName,
              security_groups=sec_group, block_device_map=map)
 
         myinstance = reservation.instances[0]
