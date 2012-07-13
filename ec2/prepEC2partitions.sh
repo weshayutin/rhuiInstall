@@ -4,6 +4,12 @@ export server="$1"
 #options /dev/$someDevice
 export device="$2"
 export partition=1
+#options file_filesystem ext3 or ext4
+export file_system="$3"
+if [ -z "$file_system" ]; then
+ export file_system=ext4
+fi
+
 
 case "$server" in
  rhua)
@@ -32,13 +38,13 @@ p
 w
 FDISK_SCRIPT
 
- mkfs.ext4 /dev/$device$partition
+ mkfs.$file_system /dev/$device$partition
  yum -y install httpd
  mkdir -p $pulp_dir
  chown apache:apache $pulp_dir
  chmod g+ws,o+t $pulp_dir
 
- echo "/dev/$device$partition $pulp_dir ext4 defaults 1 1" >> /etc/fstab
+ echo "/dev/$device$partition $pulp_dir $file_system defaults 1 1" >> /etc/fstab
  mount $pulp_dir
 set +x
 set +e

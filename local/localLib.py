@@ -124,7 +124,11 @@ class lc:
         public_hostname = e['public_dns_name'].encode('ascii')
         print('scp  script ' + ' to ' + public_hostname)
         conn.scp_put('/tmp/installRHUI.sh', '/root')
-        part = conn.rc('parted -l  | grep Disk  | sed -n 2p')[0][10:14]
+        print('rhuiVersion =', rhuiVersion)
+        if rhuiVersion > "1.2":
+            part = conn.rc('parted -l  | grep Disk  | sed -n 2p')[0][10:14]
+        elif rhuiVersion == "1.2":
+            part = conn.rc('fdisk -l  | grep Disk  | sed -n 2p')[0][10:13]
         dict = myRHUIEnv['rhua']
         dict['partition'] = part
         #conn.rc('bash /root/installRHUI.sh rhua '+ part)
@@ -139,7 +143,10 @@ class lc:
         env.host_string = public_hostname
         env.user = 'root'
         env.key_filename = ec2Key
-        run('bash /root/prepEC2partitions.sh rhua ' + part)
+        if rhui_version[0:3] == '1.2':
+            run('bash /root/prepEC2partitions.sh rhua ' + part + ' ext3')
+        else:
+            run('bash /root/prepEC2partitions.sh rhua ' + part)
         run('bash /root/installRHUI.sh rhua ')
         if rhui_version[0:3] == '2.0':
             run('rhui-installer /root/answers20x.txt')
