@@ -145,24 +145,29 @@ class lc:
 
     @staticmethod
     def runInstall(myRHUIEnv, ec2Key, rhui_version, cfg):
+        rhua = myRHUIEnv['rhua']
+        conn = myRHUIEnv['rhuaCMD']
+        public_hostname = rhua['public_dns_name'].encode('ascii')        
         if cfg.STORAGE.gluster == "True":
                 gluster = True
                 partition_prep = "prepEC2gluster.sh"
         else:
                 gluster = False
-                partition_prep = "prepEC2partitions.sh"        
-        rhua = myRHUIEnv['rhua']
-        conn = myRHUIEnv['rhuaCMD']
-        public_hostname = rhua['public_dns_name'].encode('ascii')
-        part = rhua['partition']
+                partition_prep = "prepEC2partitions.sh" 
+                part = rhua['partition']
+        
+        
 
         env.host_string = public_hostname
         env.user = 'root'
         env.key_filename = ec2Key
-        if rhui_version[0:3] == '1.2':
-            run('bash /root/' + partition_prep + ' rhua ' + part + ' ext3')
+        if gluster:
+            run('bash /root/' + partition_prep + ' rhua ')
         else:
-            run('bash /root/' + partition_prep + ' rhua ' + part)
+            if rhui_version[0:3] == '1.2':
+                run('bash /root/' + partition_prep + ' rhua ' + part + ' ext3')
+            else:
+                run('bash /root/' + partition_prep + ' rhua ' + part)
         run('bash /root/installRHUI.sh rhua ')
         if rhui_version[0:3] == '2.0':
             run('rhui-installer /root/answers20x.txt')
@@ -174,7 +179,7 @@ class lc:
         run('rpm -Uvh /tmp/rhui/rh-rhua-config-1.0-2.el6.noarch.rpm')
 
     @staticmethod
-    def installCDS(configEnv, myRHUIEnv):
+    def installCDS(configEnv, myRHUIEnv, cfg):
         if 'CDS1' in configEnv:
             cds1 = myRHUIEnv['cds1']
             conn = myRHUIEnv['cds1CMD']
@@ -182,13 +187,23 @@ class lc:
             conn.scp_put('/tmp/installRHUI.sh', '/root')
             public_hostname = cds1['public_dns_name'].encode('ascii')
             env.host_string = public_hostname
+            if cfg.STORAGE.gluster == "True":
+                            gluster = True
+                            partition_prep = "prepEC2gluster.sh"
+                    else:
+                            gluster = False
+                            partition_prep = "prepEC2partitions.sh" 
+                            part = rhua['partition']            
 
             run('tar -xvf /root/rhuiCFG.tar')
             run('cp -Rv /root/tmp/rhui /tmp')
 
             rhua = myRHUIEnv['rhua']
             part = rhua['partition']
-            run('bash /root/prepEC2partitions.sh cds1 ' + part)
+            if gluster:
+                run('bash /root/' + partition_prep + ' cds1')
+            else:
+                run('bash /root/' + partition_prep + ' cds1 ' + part)
             run('bash /root/installRHUI.sh cds1')
             run('rpm -Uvh /root/tmp/rhui/rh-cds1-config-1.0-2.el6.noarch.rpm')
 

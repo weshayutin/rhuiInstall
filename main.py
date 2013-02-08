@@ -128,7 +128,7 @@ if __name__ == '__main__':
             lc.runInstall(rhuiEnv, cfg.EC2.east_key, get_rhui_version(), cfg)
         #install CDS
         if 'CDS1' or 'CDS2' or 'CDS3' in thisEnv:
-            lc.installCDS(thisEnv, rhuiEnv)
+            lc.installCDS(thisEnv, rhuiEnv, cfg)
         #Install PROXY
         if 'PROXY' in thisEnv:
             lc.installSquidProxy(clientEnv, rhuiEnv) 
