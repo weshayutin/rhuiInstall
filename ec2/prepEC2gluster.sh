@@ -30,6 +30,7 @@ echo selected $server
 set -x
 set -e
  
+ mount -t glusterfs ec2-54-234-187-220.compute-1.amazonaws.com:/volume1 $pulp_dir
  yum -y install httpd
  mkdir -p $pulp_dir
  chown apache:apache $pulp_dir
