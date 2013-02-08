@@ -11,22 +11,22 @@ from fabric.api import env, run  # , put, settings
 #local commands
 
 def sedFile(origFile, newFile, listOfChanges):
-        outfile = newFile
+    outfile = newFile
+    o = open(outfile, "w")
+    data = open(origFile).read()
+    o.write(data)
+    o.close()
+    for i in listOfChanges:
+        data = open(outfile).read()
         o = open(outfile, "w")
-        data = open(origFile).read()
-        o.write(data)
+        mySplit = i.split("::")
+        o.write(re.sub(mySplit[0], mySplit[1], data))
         o.close()
-        for i in listOfChanges:
-            data = open(outfile).read()
-            o = open(outfile, "w")
-            mySplit = i.split("::")
-            o.write(re.sub(mySplit[0], mySplit[1], data))
-            o.close()
 
 class lc:
-
-        @staticmethod
-        def prepInstall(myRHUIEnv, clientEnv, cfg):
+    
+    @staticmethod
+    def prepInstall(myRHUIEnv, clientEnv, cfg):
         dvdURL = cfg.MAIN.dvd
         ec2Key = cfg.EC2.east_key
         partition_prep = ""
@@ -45,7 +45,7 @@ class lc:
         urllib.urlretrieve(dvdURL, filename=dvd, reporthook=None, data=None)
         os.chdir(current)
         stringToChange = []
-
+    
         for i in myRHUIEnv.keys():
             e = myRHUIEnv[i]
             if i == 'rhua':
@@ -68,7 +68,7 @@ class lc:
                 conn.scp_put(ec2Key, '/root')
                 conn.scp_put('ec2/' + partition_prep, '/root')
                 conn.scp_put(e['ent_cert'], '/root')
-
+    
             if i == 'cds1':
                 #update config
                 private_hostname = e['private_dns_name'].encode('ascii')
@@ -81,7 +81,7 @@ class lc:
                 print('scp ' + dvd + ' to ' + public_hostname)
                 conn.scp_put('/tmp/' + dvd, '/root')
                 conn.scp_put('ec2/' + partition_prep, '/root')
-
+    
             if i == 'cds2':
                 #update config
                 private_hostname = e['private_dns_name'].encode('ascii')
@@ -108,43 +108,49 @@ class lc:
                 conn.scp_put('/tmp/' + dvd, '/root')
                 conn.scp_put('ec2/' + partition_prep, '/root')
         
-        for i in clientEnv.keys():
-            e = clientEnv[i]
-            if i == 'proxy':
-                private_hostname = e['private_dns_name'].encode('ascii')
-                origTxt = '#export my_proxy=host.internal'
-                newTxt = 'export my_proxy=' + private_hostname
-                stringToChange.append(origTxt + "::" + newTxt)
-                
-                origTxt = '# proxy_server_host: proxy.example.com'
-                newTxt = 'proxy_server_host: ' + '$my_proxy'
-                stringToChange.append(origTxt + "::" + newTxt)
-                
-                origTxt = '# proxy_server_port: 443'
-                newTxt = 'proxy_server_port: 3128'
-                stringToChange.append(origTxt + "::" + newTxt)
-                
-        keyName = ec2Key.split('/')[-1]
-        stringToChange.append('export ec2pem=key::export ec2pem=/root/'
-            + keyName)
-        sedFile('shell/installRHUI.sh', '/tmp/installRHUI.sh', stringToChange)
-
-        e = myRHUIEnv['rhua']
-        conn = myRHUIEnv['rhuaCMD']
-        public_hostname = e['public_dns_name'].encode('ascii')
-        print('scp  script ' + ' to ' + public_hostname)
-        conn.scp_put('/tmp/installRHUI.sh', '/root')
-        print('rhuiVersion =', rhuiVersion)
-        if rhuiVersion > "1.2":
-            part = conn.rc('parted -l  | grep Disk  | sed -n 2p')[0][10:14]
-        elif rhuiVersion == "1.2":
-            part = conn.rc('fdisk -l  | grep Disk  | sed -n 2p')[0][10:13]
-        dict = myRHUIEnv['rhua']
-        dict['partition'] = part
-        #conn.rc('bash /root/installRHUI.sh rhua '+ part)
+                for i in clientEnv.keys():
+                    e = clientEnv[i]
+                    if i == 'proxy':
+                        private_hostname = e['private_dns_name'].encode('ascii')
+                        origTxt = '#export my_proxy=host.internal'
+                        newTxt = 'export my_proxy=' + private_hostname
+                        stringToChange.append(origTxt + "::" + newTxt)
+                        
+                        origTxt = '# proxy_server_host: proxy.example.com'
+                        newTxt = 'proxy_server_host: ' + '$my_proxy'
+                        stringToChange.append(origTxt + "::" + newTxt)
+                        
+                        origTxt = '# proxy_server_port: 443'
+                        newTxt = 'proxy_server_port: 3128'
+                        stringToChange.append(origTxt + "::" + newTxt)
+                        
+                keyName = ec2Key.split('/')[-1]
+                stringToChange.append('export ec2pem=key::export ec2pem=/root/'
+                    + keyName)
+                sedFile('shell/installRHUI.sh', '/tmp/installRHUI.sh', stringToChange)
+            
+                e = myRHUIEnv['rhua']
+                conn = myRHUIEnv['rhuaCMD']
+                public_hostname = e['public_dns_name'].encode('ascii')
+                print('scp  script ' + ' to ' + public_hostname)
+                conn.scp_put('/tmp/installRHUI.sh', '/root')
+                print('rhuiVersion =', rhuiVersion)
+                if rhuiVersion > "1.2":
+                    part = conn.rc('parted -l  | grep Disk  | sed -n 2p')[0][10:14]
+                elif rhuiVersion == "1.2":
+                    part = conn.rc('fdisk -l  | grep Disk  | sed -n 2p')[0][10:13]
+                dict = myRHUIEnv['rhua']
+                dict['partition'] = part
+                #conn.rc('bash /root/installRHUI.sh rhua '+ part)
 
     @staticmethod
-    def runInstall(myRHUIEnv, ec2Key, rhui_version):
+    def runInstall(myRHUIEnv, ec2Key, rhui_version, cfg):
+        if cfg.STORAGE.gluster == "True":
+                gluster = True
+                partition_prep = "prepEC2gluster.sh"
+        else:
+                gluster = False
+                partition_prep = "prepEC2partitions.sh"        
         rhua = myRHUIEnv['rhua']
         conn = myRHUIEnv['rhuaCMD']
         public_hostname = rhua['public_dns_name'].encode('ascii')

@@ -125,7 +125,7 @@ if __name__ == '__main__':
         #Install RHUI
         if 'RHUA' in thisEnv:
             lc.prepInstall(rhuiEnv, clientEnv, cfg)
-            lc.runInstall(rhuiEnv, cfg.EC2.east_key, get_rhui_version())
+            lc.runInstall(rhuiEnv, cfg.EC2.east_key, get_rhui_version(), cfg)
         #install CDS
         if 'CDS1' or 'CDS2' or 'CDS3' in thisEnv:
             lc.installCDS(thisEnv, rhuiEnv)
