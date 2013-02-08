@@ -30,14 +30,16 @@ echo selected $server
 set -x
 set -e
  
- mount -t glusterfs ec2-54-234-187-220.compute-1.amazonaws.com:/volume1 $pulp_dir
  yum -y install httpd
  mkdir -p $pulp_dir
  chown apache:apache $pulp_dir
  chmod g+ws,o+t $pulp_dir
 
- echo "/dev/$device$partition $pulp_dir $file_system defaults 1 1" >> /etc/fstab
+ echo "ec2-54-234-187-220.compute-1.amazonaws.com:/volume1  $pulp_dir glusterfs rw,defaults, 0 0" >> /etc/fstab
  mount $pulp_dir
+ chown apache:apache $pulp_dir
+ chmod g+ws,o+t $pulp_dir
+ 
 set +x
 set +e
 ls -d $pulp_dir
