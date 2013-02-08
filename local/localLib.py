@@ -124,24 +124,24 @@ class lc:
                         newTxt = 'proxy_server_port: 3128'
                         stringToChange.append(origTxt + "::" + newTxt)
                         
-                keyName = ec2Key.split('/')[-1]
-                stringToChange.append('export ec2pem=key::export ec2pem=/root/'
-                    + keyName)
-                sedFile('shell/installRHUI.sh', '/tmp/installRHUI.sh', stringToChange)
-            
-                e = myRHUIEnv['rhua']
-                conn = myRHUIEnv['rhuaCMD']
-                public_hostname = e['public_dns_name'].encode('ascii')
-                print('scp  script ' + ' to ' + public_hostname)
-                conn.scp_put('/tmp/installRHUI.sh', '/root')
-                print('rhuiVersion =', rhuiVersion)
-                if rhuiVersion > "1.2":
-                    part = conn.rc('parted -l  | grep Disk  | sed -n 2p')[0][10:14]
-                elif rhuiVersion == "1.2":
-                    part = conn.rc('fdisk -l  | grep Disk  | sed -n 2p')[0][10:13]
-                dict = myRHUIEnv['rhua']
-                dict['partition'] = part
-                #conn.rc('bash /root/installRHUI.sh rhua '+ part)
+                        keyName = ec2Key.split('/')[-1]
+                        stringToChange.append('export ec2pem=key::export ec2pem=/root/'
+                            + keyName)
+                        sedFile('shell/installRHUI.sh', '/tmp/installRHUI.sh', stringToChange)
+                    
+                        e = myRHUIEnv['rhua']
+                        conn = myRHUIEnv['rhuaCMD']
+                        public_hostname = e['public_dns_name'].encode('ascii')
+                        print('scp  script ' + ' to ' + public_hostname)
+                        conn.scp_put('/tmp/installRHUI.sh', '/root')
+                        print('rhuiVersion =', rhuiVersion)
+                        if rhuiVersion > "1.2":
+                            part = conn.rc('parted -l  | grep Disk  | sed -n 2p')[0][10:14]
+                        elif rhuiVersion == "1.2":
+                            part = conn.rc('fdisk -l  | grep Disk  | sed -n 2p')[0][10:13]
+                        dict = myRHUIEnv['rhua']
+                        dict['partition'] = part
+                        #conn.rc('bash /root/installRHUI.sh rhua '+ part)
 
     @staticmethod
     def runInstall(myRHUIEnv, ec2Key, rhui_version, cfg):
@@ -155,8 +155,6 @@ class lc:
             gluster = False
             partition_prep = "prepEC2partitions.sh" 
             part = rhua['partition']
-        
-        
 
         env.host_string = public_hostname
         env.user = 'root'
