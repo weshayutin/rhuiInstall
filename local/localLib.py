@@ -25,8 +25,18 @@ def sedFile(origFile, newFile, listOfChanges):
 
 class lc:
 
-    @staticmethod
-    def prepInstall(myRHUIEnv, clientEnv, dvdURL, ec2Key):
+        @staticmethod
+        def prepInstall(myRHUIEnv, clientEnv, cfg):
+        dvdURL = cfg.MAIN.dvd
+        ec2Key = cfg.EC2.east_key
+        partition_prep = ""
+        if cfg.STORAGE.gluster == "True":
+                gluster = True
+                partition_prep = "prepEC2gluster.sh"
+        else:
+                gluster = False
+                partition_prep = "prepEC2partitions.sh"
+                
         rhuiVersion = dvdURL.split('/')[-1].split('-')[3]
         current = os.getcwd()
         os.chdir('/tmp')
@@ -56,7 +66,7 @@ class lc:
                 #scp key
                 print('scp ' + 'ec2_key ' + ' to ' + public_hostname)
                 conn.scp_put(ec2Key, '/root')
-                conn.scp_put('ec2/prepEC2partitions.sh', '/root')
+                conn.scp_put('ec2/' + partition_prep, '/root')
                 conn.scp_put(e['ent_cert'], '/root')
 
             if i == 'cds1':
@@ -70,7 +80,7 @@ class lc:
                 public_hostname = e['public_dns_name'].encode('ascii')
                 print('scp ' + dvd + ' to ' + public_hostname)
                 conn.scp_put('/tmp/' + dvd, '/root')
-                conn.scp_put('ec2/prepEC2partitions.sh', '/root')
+                conn.scp_put('ec2/' + partition_prep, '/root')
 
             if i == 'cds2':
                 #update config
@@ -83,7 +93,7 @@ class lc:
                 public_hostname = e['public_dns_name'].encode('ascii')
                 print('scp ' + dvd + ' to ' + public_hostname)
                 conn.scp_put('/tmp/' + dvd, '/root')
-                conn.scp_put('ec2/prepEC2partitions.sh', '/root')
+                conn.scp_put('ec2/' + partition_prep, '/root')
                 
             if i == 'cds3':
                 #update config
@@ -96,7 +106,7 @@ class lc:
                 public_hostname = e['public_dns_name'].encode('ascii')
                 print('scp ' + dvd + ' to ' + public_hostname)
                 conn.scp_put('/tmp/' + dvd, '/root')
-                conn.scp_put('ec2/prepEC2partitions.sh', '/root')
+                conn.scp_put('ec2/' + partition_prep, '/root')
         
         for i in clientEnv.keys():
             e = clientEnv[i]
@@ -144,9 +154,9 @@ class lc:
         env.user = 'root'
         env.key_filename = ec2Key
         if rhui_version[0:3] == '1.2':
-            run('bash /root/prepEC2partitions.sh rhua ' + part + ' ext3')
+            run('bash /root/' + partition_prep + ' rhua ' + part + ' ext3')
         else:
-            run('bash /root/prepEC2partitions.sh rhua ' + part)
+            run('bash /root/' + partition_prep + ' rhua ' + part)
         run('bash /root/installRHUI.sh rhua ')
         if rhui_version[0:3] == '2.0':
             run('rhui-installer /root/answers20x.txt')
