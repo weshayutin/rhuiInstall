@@ -149,12 +149,12 @@ class lc:
         conn = myRHUIEnv['rhuaCMD']
         public_hostname = rhua['public_dns_name'].encode('ascii')        
         if cfg.STORAGE.gluster == "True":
-                gluster = True
-                partition_prep = "prepEC2gluster.sh"
+            gluster = True
+            partition_prep = "prepEC2gluster.sh"
         else:
-                gluster = False
-                partition_prep = "prepEC2partitions.sh" 
-                part = rhua['partition']
+            gluster = False
+            partition_prep = "prepEC2partitions.sh" 
+            part = rhua['partition']
         
         
 
@@ -188,12 +188,12 @@ class lc:
             public_hostname = cds1['public_dns_name'].encode('ascii')
             env.host_string = public_hostname
             if cfg.STORAGE.gluster == "True":
-                            gluster = True
-                            partition_prep = "prepEC2gluster.sh"
-                    else:
-                            gluster = False
-                            partition_prep = "prepEC2partitions.sh" 
-                            part = rhua['partition']            
+                gluster = True
+                partition_prep = "prepEC2gluster.sh"
+            else:
+                gluster = False
+                partition_prep = "prepEC2partitions.sh" 
+                part = rhua['partition']            
 
             run('tar -xvf /root/rhuiCFG.tar')
             run('cp -Rv /root/tmp/rhui /tmp')
